@@ -36,6 +36,7 @@
             'loadstart': channel.create('loadstart'),
             'loadstop' : channel.create('loadstop'),
             'loaderror' : channel.create('loaderror'),
+            'unload' : channel.create('unload'),
             'exit' : channel.create('exit')
        };
     }
@@ -87,7 +88,7 @@
         }
     };
 
-    module.exports = function(strUrl, strWindowName, strWindowFeatures, callbacks) {
+    module.exports = function(strUrl, strWindowName, strWindowFeatures, callbacks, ignoreList) {
         // Don't catch calls that write to existing frames (e.g. named iframes).
         if (window.frames && window.frames[strWindowName]) {
             var origOpenFunc = modulemapper.getOriginalSymbol(window, 'open');
@@ -102,13 +103,15 @@
             iab.addEventListener(callbackName, callbacks[callbackName]);
         }
 
+        ignoreList = ignoreList || [];
+
         var cb = function(eventname) {
            iab._eventHandler(eventname);
         };
 
         strWindowFeatures = strWindowFeatures || "";
 
-        exec(cb, cb, "InAppBrowser", "open", [strUrl, strWindowName, strWindowFeatures]);
+        exec(cb, cb, "InAppBrowser", "open", [strUrl, strWindowName, strWindowFeatures, ignoreList]);
         return iab;
     };
 })();

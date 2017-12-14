@@ -36,6 +36,7 @@
 
 @interface CDVInAppBrowser () {
     NSInteger _previousStatusBarStyle;
+    NSArray<NSString *> *_unloadList;
 }
 @end
 
@@ -83,6 +84,7 @@
     NSString* url = [command argumentAtIndex:0];
     NSString* target = [command argumentAtIndex:1 withDefault:kInAppBrowserTargetSelf];
     NSString* options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
+    _unloadList = [command argumentAtIndex:3 withDefault:@[] andClass:[NSArray<NSString *> class]];
 
     self.callbackId = command.callbackId;
 
@@ -425,7 +427,7 @@
             [self.commandDelegate sendPluginResult:pluginResult callbackId:scriptCallbackId];
             return NO;
         }
-    } 
+    }
     //if is an app store link, let the system handle it, otherwise it fails to load it
     else if ([[ url scheme] isEqualToString:@"itms-appss"] || [[ url scheme] isEqualToString:@"itms-apps"]) {
         [theWebView stopLoading];
@@ -439,6 +441,32 @@
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
 
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    }
+
+    __block BOOL unloadFlag = NO;
+    NSString *urlStr = [url absoluteString];
+    [_unloadList enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+
+        NSError *error = nil;
+        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:obj
+                                                          options:NSRegularExpressionCaseInsensitive
+                                                            error:&error];
+        if (! error) {
+            NSTextCheckingResult *match = [regex firstMatchInString:urlStr
+                                                            options:0
+                                                          range:NSMakeRange(0, urlStr.length)];
+            if (match) {
+                unloadFlag = YES;
+            }
+        }
+    }];
+    if (unloadFlag) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                      messageAsDictionary:@{@"type":@"unload", @"url":urlStr}];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+        return NO;
     }
 
     return YES;
@@ -516,7 +544,7 @@
 #else
         _webViewDelegate = [[CDVWebViewDelegate alloc] initWithDelegate:self];
 #endif
-        
+
         [self createViews];
     }
 
@@ -1096,4 +1124,3 @@
 
 
 @end
-
