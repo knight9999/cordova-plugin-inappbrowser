@@ -25,6 +25,21 @@ description: Open an in-app browser window.
 |:-:|:-:|:-:|:-:|:-:|
 |[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=android-4.4,PLUGIN=cordova-plugin-inappbrowser)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=android-4.4,PLUGIN=cordova-plugin-inappbrowser/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=android-5.1,PLUGIN=cordova-plugin-inappbrowser)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=android-5.1,PLUGIN=cordova-plugin-inappbrowser/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=ios,PLUGIN=cordova-plugin-inappbrowser)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=ios,PLUGIN=cordova-plugin-inappbrowser/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=windows-10-store,PLUGIN=cordova-plugin-inappbrowser)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=windows-10-store,PLUGIN=cordova-plugin-inappbrowser/)|[![Build Status](https://travis-ci.org/apache/cordova-plugin-inappbrowser.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-inappbrowser)|
 
+# unload機能の追加
+
+記事： https://qiita.com/KNaito/items/28e68d4e22b490c65a00
+
+このプラグインは、InAppBrowserに、「特定のページのみページ読み込みをしない」機能を追加したものになります。
+InAppBrowserのopenメソッドの第五引数に、正規表現の文字列のリストを設定することで、この正規表現にマッチしたURLにはページ遷移しなくなります。
+
+例：
+```
+var ref = cordova.InAppBrowser.open('https://github.com/apache/cordova-plugin-inappbrowser', '_blank', 'location=yes', null, ['https:\/\/github\.com\/apache\/cordova-plugin-inappbrowser\/blob\/master\/README\.md']);
+ref.addEventListener('unload', function(json) { alert( json.url ); } );
+```
+
+これで、https://github.com/apache/cordova-plugin-inappbrowser を開きますが、README.mdを開こうとすると開けず、代わりにalertダイアログが表示されます。
+
 # cordova-plugin-inappbrowser
 
 You can show helpful articles, videos, and web resources inside of your app. Users can view web pages without leaving your app.
