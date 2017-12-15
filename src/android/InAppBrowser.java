@@ -59,6 +59,7 @@ import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -103,6 +104,7 @@ public class InAppBrowser extends CordovaPlugin {
     private boolean mediaPlaybackRequiresUserGesture = false;
     private boolean shouldPauseInAppBrowser = false;
     private boolean useWideViewPort = true;
+    private JSONArray unloadList;
 
     /**
      * Executes the request and returns PluginResult.
@@ -122,6 +124,7 @@ public class InAppBrowser extends CordovaPlugin {
             }
             final String target = t;
             final HashMap<String, Boolean> features = parseFeature(args.optString(2));
+            unloadList = args.optJSONArray(3);
 
             LOG.d(LOG_TAG, "target = " + target);
 
@@ -909,6 +912,26 @@ public class InAppBrowser extends CordovaPlugin {
                     LOG.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
                 }
             }
+
+            boolean unloadFlag = false;
+            for (int i=0;i<unloadList.length();i++) {
+                String regex = unloadList.optString(i);
+                if (url.matches(regex)) {
+                    unloadFlag = true;
+                }
+            }
+            if (unloadFlag) {
+                try {
+                    JSONObject obj = new JSONObject();
+                    obj.put("type", "unload");
+                    obj.put("url", url);
+                    sendUpdate(obj, true);
+                } catch (JSONException ex) {
+                    LOG.e(LOG_TAG, "URI passed in has caused a JSON error.");
+                }
+                return true;
+            }
+
             return false;
         }
 
